@@ -1,60 +1,36 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# Install python-nautilus
-echo "Installing python-nautilus..."
-if type "pacman" > /dev/null 2>&1
-then
-    # check if already install, else install
-    pacman -Qi python-nautilus &> /dev/null
-    if [ `echo $?` -eq 1 ]
-    then
-        sudo pacman -S --noconfirm python-nautilus
-    else
-        echo "python-nautilus is already installed"
-    fi
-elif type "apt-get" > /dev/null 2>&1
-then
-    # Find Ubuntu python-nautilus package
-    package_name="python-nautilus"
-    found_package=$(apt-cache search --names-only $package_name)
-    if [ -z "$found_package" ]
-    then
-        package_name="python3-nautilus"
-    fi
+# Скрипт установки расширения VS Code для Nautilus
 
-    # Check if the package needs to be installed and install it
-    installed=$(apt list --installed $package_name -qq 2> /dev/null)
-    if [ -z "$installed" ]
-    then
-        sudo apt-get install -y $package_name
-    else
-        echo "$package_name is already installed."
-    fi
-elif type "dnf" > /dev/null 2>&1
-then
-    installed=`dnf list --installed nautilus-python 2> /dev/null`
-    if [ -z "$installed" ]
-    then
-        sudo dnf install -y nautilus-python
-    else
-        echo "nautilus-python is already installed."
-    fi
-else
-    echo "Failed to find python-nautilus, please install it manually."
+set -e
+
+EXT_DIR="$HOME/.local/share/nautilus-python/extensions"
+EXT_FILE="$EXT_DIR/code-nautilus.py"
+RAW_URL="https://github.com/ProgrammerForeve/nautilus-open-in-vscode-ru/blob/master/code-nautilus.py"
+
+echo "🔷 Установка расширения VS Code для Nautilus..."
+
+# Проверка и установка пакета python3-nautilus
+if ! dpkg -s python3-nautilus >/dev/null 2>&1; then
+    echo "📦 Устанавливаем пакет python3-nautilus (потребуется пароль sudo)..."
+    sudo apt-get update -qq
+    sudo apt-get install -y python3-nautilus
 fi
 
-# Remove previous version and setup folder
-echo "Removing previous version (if found)..."
-mkdir -p ~/.local/share/nautilus-python/extensions
-rm -f ~/.local/share/nautilus-python/extensions/VSCodeExtension.py
-rm -f ~/.local/share/nautilus-python/extensions/code-nautilus.py
+# Создание директории для расширений
+mkdir -p "$EXT_DIR"
 
-# Download and install the extension
-echo "Downloading newest version..."
-wget -q -O ~/.local/share/nautilus-python/extensions/code-nautilus.py https://raw.githubusercontent.com/harry-cpp/code-nautilus/master/code-nautilus.py
+# Скачивание скрипта или копирование локального файла
+if [ -f "./code-nautilus.py" ]; then
+    echo "📂 Копируем локальный файл расширения..."
+    cp "./code-nautilus.py" "$EXT_FILE"
+else
+    echo "🌐 Загружаем расширение с GitHub..."
+    wget -qO "$EXT_FILE" "$RAW_URL"
+fi
 
-# Restart nautilus
-echo "Restarting nautilus..."
-nautilus -q
+# Перезапуск Nautilus
+echo "🔄 Перезапускаем файловый менеджер Nautilus..."
+nautilus -q || true
 
-echo "Installation Complete"
+echo "✅ Установка завершена! Нажмите правой кнопкой по любой папке для проверки."

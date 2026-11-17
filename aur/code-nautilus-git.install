@@ -1,7 +1,11 @@
 post_install() {
-	echo "Remember to restart nautilus by running 'nautilus -q'"
+    echo "🔷 Расширение установлено. Перезапустите Nautilus командой: nautilus -q"
+}
+
+post_upgrade() {
+    post_install
 }
 
 post_remove() {
-	echo "Remember to restart nautilus by running 'nautilus -q'"
+    echo "🗑️ Расширение удалено. Перезапустите Nautilus командой: nautilus -q"
 }
